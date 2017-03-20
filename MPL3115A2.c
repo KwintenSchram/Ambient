@@ -117,3 +117,20 @@ void Standby_MPL3115A2()
 	uint8_t v2[2]={0x26, v[0]};
 	WRITE_REGISTER_MPL3115A2(v2,2);
 }
+uint16_t Read_Temp_MPL3115A() 
+{
+	uint16_t t = 0;
+	uint8_t t1[1];
+	READ_REGISTER_MPL3115A2(t1,0x04,1);
+	uint8_t t2[1];
+	READ_REGISTER_MPL3115A2(t2,0x05,1);
+	t = (t1 << 8) | t2;
+	return t;
+}
+double parseTemp_MPL3115A(uint16_t temp) 
+{
+	uint16_t t_m = (temp >> 8) & 0xFF;
+	uint16_t t_l = temp & 0xFF;
+	if (t_m > 0x7f) t_m = t_m - 256;
+	return t_m + t_l / 256.0;
+}
