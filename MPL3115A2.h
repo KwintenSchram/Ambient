@@ -61,7 +61,7 @@ I2C_HandleTypeDef *hi2cLib;
 void setI2CInterface_MPL3115A2(I2C_HandleTypeDef *hi2c);
 uint8_t WRITE_REGISTER_MPL3115A2(uint8_t pData[],uint8_t length);
 uint8_t READ_REGISTER_MPL3115A2(uint8_t buf[],uint8_t reg,uint8_t length);
-uint8_t ReadBar_MPL3115A2(uint32_t *data);
+//uint8_t ReadBar_MPL3115A2(uint32_t *data);
 uint8_t ReadBar_MPL3115A2_v2(uint32_t *data);
 int parseBar_MPL3115A2(uint32_t data);
 uint8_t newValue_MPL3115A2();
