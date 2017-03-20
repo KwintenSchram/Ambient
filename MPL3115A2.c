@@ -20,6 +20,7 @@ uint8_t READ_REGISTER_MPL3115A2(uint8_t buf[],uint8_t reg,uint8_t length)
 	uint8_t status = HAL_I2C_Mem_Read(hi2cLib, MPL3115A2_ADDRESS<<1, reg, I2C_MEMADD_SIZE_8BIT, buf, length, HAL_MAX_DELAY);
 	return status;
 }
+/*
 uint8_t ReadBar_MPL3115A2(uint32_t *data)
 {
 	uint8_t status=0;
@@ -33,6 +34,7 @@ uint8_t ReadBar_MPL3115A2(uint32_t *data)
 	*data=msb[0]<<16|csb[0]<<8|lsb[0];
 	return status;
 }
+*/
 uint8_t ReadBar_MPL3115A2_v2(uint32_t *data)
 {
 	uint8_t status=0;
@@ -95,6 +97,7 @@ void Init_Bar_MPL3115A2()
 		WRITE_REGISTER_MPL3115A2(d,2);
 		WRITE_REGISTER_MPL3115A2(e,2);
 		WRITE_REGISTER_MPL3115A2(f,2);
+		Active_MPL3115A2();
 	}
 }
 void Active_MPL3115A2()
