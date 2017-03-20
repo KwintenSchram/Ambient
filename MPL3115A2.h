@@ -69,7 +69,8 @@ void Init_Bar_int_MPL3115A2();
 void Init_Bar_MPL3115A2();
 void Active_MPL3115A2();
 void Standby_MPL3115A2();
-
+uint16_t Read_Temp_MPL3115A();
+double parseTemp_MPL3115A(uint16_t temp);
 
 
 #endif /* MPL3115A2_H_ */
