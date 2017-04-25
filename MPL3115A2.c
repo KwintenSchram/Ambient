@@ -124,7 +124,7 @@ uint16_t Read_Temp_MPL3115A()
 	READ_REGISTER_MPL3115A2(t1,0x04,1);
 	uint8_t t2[1];
 	READ_REGISTER_MPL3115A2(t2,0x05,1);
-	t = (t1 << 8) | t2;
+	t = (t1[0] << 8) | t2[0];
 	return t;
 }
 double parseTemp_MPL3115A(uint16_t temp) 
