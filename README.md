@@ -9,7 +9,7 @@ Libraries for STM32 to control following devices:
 Libraries for STM32 to control following devices:
 * High-Precision Pressure Sensor (MPL3115A2)
 * Low-power 3D Magnetometer (MAG3110)
-* CO2 and TVOC Air Quality Sensor (CCS811)
+* CO2 and TVOC Air Quality Sensor (CCS811) 
 
 Ported from following sources:
 https://www.sparkfun.com/products/14181
@@ -25,3 +25,4 @@ Notes:
 * Reading the sensor regardless of whether the sensor has new data
 * Receiving an interrupt signal when new data is available
 * PN532 lib not tested yet
+* CCS811 reports incorrect values between correct values.
