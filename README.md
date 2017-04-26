@@ -26,3 +26,4 @@ Notes:
 * Receiving an interrupt signal when new data is available
 * PN532 lib not tested yet
 * CCS811 reports incorrect values between correct values.
+* RPI make command --> gcc -o tempProg test.c libmemssensor.a -l bcm2835
