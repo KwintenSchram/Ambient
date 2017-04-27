@@ -873,7 +873,8 @@ void readdata(uint8_t buff[], uint8_t n)
 	//}
 	// Discard trailing 0x00 0x00
 	// i2c_recv();
-	HAL_I2C_Slave_Receive(hi2cLib, buff, n+2, HAL_MAX_DELAY);
+	///READ_REGISTER_PN532(buff,0X02,n+2);
+	HAL_I2C_Master_Receive(hi2cLib, PN532_I2C_ADDRESS<<1, buff, n+2, HAL_MAX_DELAY);
 
 }
 /*!
@@ -885,37 +886,33 @@ void readdata(uint8_t buff[], uint8_t n)
 */
 void writecommand(uint8_t* cmd, uint8_t cmdlen)
 {
+	char str[80];
 	uint8_t checksum;
 	cmdlen++;
 	HAL_Delay(2) ;    // or whatever the delay is for waking up the board
 
 	// I2C START
-	//WIRE.beginTransmission(PN532_I2C_ADDRESS);
+
 	checksum = PN532_PREAMBLE + PN532_PREAMBLE + PN532_STARTCODE2;
 	writeBuffer[0]=PN532_PREAMBLE;
-	WRITE_REGISTER_PN532(writeBuffer,1);
-	WRITE_REGISTER_PN532(writeBuffer,1);
-	writeBuffer[0]=PN532_STARTCODE2;
-	WRITE_REGISTER_PN532(writeBuffer,1);
-	writeBuffer[0]=cmdlen;
-	WRITE_REGISTER_PN532(writeBuffer,1);
-	writeBuffer[0]=~cmdlen+1;
-	WRITE_REGISTER_PN532(writeBuffer,1);
-	writeBuffer[0]=PN532_HOSTTOPN532;
-	WRITE_REGISTER_PN532(writeBuffer,1);
+	writeBuffer[1]=PN532_PREAMBLE;
+	writeBuffer[2]=PN532_STARTCODE2;
+	writeBuffer[3]=cmdlen;
+	writeBuffer[4]=~cmdlen+1;
+	writeBuffer[5]=PN532_HOSTTOPN532;
 
 	checksum += PN532_HOSTTOPN532;
-
-	for (uint8_t i=0; i<cmdlen-1; i++)
+	uint8_t i=0;
+	for (i=0; i<cmdlen-1; i++)
 	{
-		writeBuffer[0]=cmd[i];
-		WRITE_REGISTER_PN532(writeBuffer,1);
+		writeBuffer[6+i]=cmd[i];
+		HAL_Delay(2) ;
 		checksum += cmd[i];
 	}
-	writeBuffer[0]=~checksum;
-	WRITE_REGISTER_PN532(writeBuffer,1);
-	writeBuffer[0]=PN532_POSTAMBLE;
-	WRITE_REGISTER_PN532(writeBuffer,1);
+
+	writeBuffer[6+cmdlen]=~checksum;
+	writeBuffer[7+cmdlen]=PN532_POSTAMBLE;
+	WRITE_REGISTER_PN532(writeBuffer,8+cmdlen);
 }
 /*!
     @brief  Return true if the PN532 is ready with a response.
@@ -923,8 +920,8 @@ void writecommand(uint8_t* cmd, uint8_t cmdlen)
 uint8_t isready()
 {
 	// I2C check if status is ready by IRQ line being pulled low.
-	//uint8_t x = digitalRead(_irq); //TODO
-	uint8_t x=0;
+	//uint8_t x = digitalRead(_irq);
+	uint8_t x = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13)
 	return x == 0;
 }
 /*!
