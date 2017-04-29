@@ -886,33 +886,38 @@ void readdata(uint8_t buff[], uint8_t n)
 */
 void writecommand(uint8_t* cmd, uint8_t cmdlen)
 {
-	char str[80];
-	uint8_t checksum;
+		uint8_t checksum;
+	uint8_t temp=0;
 	cmdlen++;
 	HAL_Delay(2) ;    // or whatever the delay is for waking up the board
 
-	// I2C START
-
 	checksum = PN532_PREAMBLE + PN532_PREAMBLE + PN532_STARTCODE2;
-	writeBuffer[0]=PN532_PREAMBLE;
-	writeBuffer[1]=PN532_PREAMBLE;
-	writeBuffer[2]=PN532_STARTCODE2;
-	writeBuffer[3]=cmdlen;
-	writeBuffer[4]=~cmdlen+1;
-	writeBuffer[5]=PN532_HOSTTOPN532;
+	writeBuffer[temp]=PN532_PREAMBLE;
+	temp++;
+	writeBuffer[temp]=PN532_PREAMBLE;
+	temp++;
+	writeBuffer[temp]=PN532_STARTCODE2;
+	temp++;
+	writeBuffer[temp]=cmdlen;
+	temp++;
+	writeBuffer[temp]=~cmdlen+1;
+	temp++;
+	writeBuffer[temp]=PN532_HOSTTOPN532;
+	temp++;
 
 	checksum += PN532_HOSTTOPN532;
 	uint8_t i=0;
-	for (i=0; i<cmdlen-1; i++)
+	for (i=0; i<cmdlen-1; i++) 
 	{
-		writeBuffer[6+i]=cmd[i];
-		HAL_Delay(2) ;
+		writeBuffer[temp]=cmd[i];
+		temp++;
 		checksum += cmd[i];
 	}
-
-	writeBuffer[6+cmdlen]=~checksum;
-	writeBuffer[7+cmdlen]=PN532_POSTAMBLE;
-	WRITE_REGISTER_PN532(writeBuffer,8+cmdlen);
+	writeBuffer[temp]=~checksum;
+	temp++;
+	writeBuffer[temp]=PN532_POSTAMBLE;
+	temp++;
+	WRITE_REGISTER_PN532(writeBuffer,temp);
 }
 /*!
     @brief  Return true if the PN532 is ready with a response.
