@@ -5,7 +5,7 @@ Libraries for STM32 to control following devices:
 * 3-Axis, Digital Accelerometer (MMA8491Q)
 * CO2 and TVOC Air Quality Sensor (CCS811)
 * I2C access to the PN532 RFID/Near Field Communication chip
-# rpi
+# RPI
 Libraries for STM32 to control following devices:
 * High-Precision Pressure Sensor (MPL3115A2)
 * Low-power 3D Magnetometer (MAG3110)
@@ -19,11 +19,10 @@ https://github.com/arduino-org/arduino-library-lucky-shield/blob/master/src/lib/
 https://github.com/adafruit/Adafruit-PN532
 
 Notes:
-- Accelerometer hasn't been tested. A pin will need to be enabled and disabled before reading can be succcesfull.
 - Magnetometer calibration hasn't been tested.
 - Pressure Sensor only includes code to read out the pressure in pascal. It includes two configuration modes:
 * Reading the sensor regardless of whether the sensor has new data
 * Receiving an interrupt signal when new data is available
-* PN532 lib not tested yet
-* CCS811 reports incorrect values between correct values.
-* RPI make command --> gcc -o tempProg test.c libmemssensor.a -l bcm2835
+- CCS811 reports incorrect values between correct values with the RPI
+* RPI first 'make' and then compile with following command: 'gcc -o tempProg test.c libmemssensor.a -l bcm2835'
+* PN532 example included
