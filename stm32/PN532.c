@@ -13,7 +13,7 @@ void setI2CInterface_PN532(I2C_HandleTypeDef *hi2c)
 
 uint8_t WRITE_REGISTER_PN532(uint8_t pData[],uint8_t length)
 {
-	uint8_t status=HAL_I2C_Master_Transmit(hi2cLib, PN532_I2C_ADDRESS <<1, pData,length, HAL_MAX_DELAY);
+	uint8_t status=HAL_I2C_Master_Transmit(hi2cLib, PN532_I2C_ADDRESS<<1 , pData,length, HAL_MAX_DELAY);
 		return status;
 	}
 uint8_t READ_REGISTER_PN532(uint8_t buf[],uint8_t reg,uint8_t length)
@@ -55,22 +55,24 @@ uint8_t SAMConfig()
 uint32_t getFirmwareVersion()
 {
 	uint32_t response;
-	uint8_t pn532response_firmwarevers[] = {0x00, 0xFF, 0x06, 0xFA, 0xD5, 0x03};
+	uint8_t pn532response_firmwarevers[] = {0x01,0x00,0x00, 0xFF, 0x06, 0xFA, 0xD5, 0x03};
 	pn532_packetbuffer[0] = PN532_COMMAND_GETFIRMWAREVERSION;
 
 	if (! sendCommandCheckAck(pn532_packetbuffer, 1,1000))
 	{
+
 		return 0;
 	}
 
 	// read data packet
 	readdata(pn532_packetbuffer, 12);
-
-	// check some basic stuff
-	if (0 != strncmp((char *)pn532_packetbuffer, (char *)pn532response_firmwarevers, 6))
+		// check some basic stuff
+	if (0 != strncmp((char *)pn532_packetbuffer, (char *)pn532response_firmwarevers, 8))
 	{
+
 		return 0;
 	}
+
 
 	int offset = 8;  // Skip a response byte when using I2C to ignore extra data.//+1 for not discarding leading 0x01
 	response = pn532_packetbuffer[offset++];
@@ -144,12 +146,12 @@ uint8_t readPassiveTargetID(uint8_t cardbaudrate, uint8_t * uid, uint8_t * uidLe
 	}
 
 	// wait for a card to enter the field (only possible with I2C) TODO
-	/*
-	if (!waitready(timeout))
+
+	if (!waitready(0))
 	{
 		return 0x0;
 	}
-*/
+
 	// read data packet
 	readdata(pn532_packetbuffer, 20);
 	// check some basic stuff
@@ -862,20 +864,8 @@ void readdata(uint8_t buff[], uint8_t n)
 {
 	uint16_t timer = 0;
 	HAL_Delay(2);
-	// Start read (n+1 to take into account leading 0x01 with I2C)
-	//WIRE.requestFrom((uint8_t)PN532_I2C_ADDRESS, (uint8_t)(n+2));
-	// Discard the leading 0x01
-//	i2c_recv();
-//	for (uint8_t i=0; i<n; i++)
-	//{
-		//HAL_Delay(1);
-		//buff[i] = i2c_recv();
-	//}
-	// Discard trailing 0x00 0x00
-	// i2c_recv();
-	///READ_REGISTER_PN532(buff,0X02,n+2);
-	HAL_I2C_Master_Receive(hi2cLib, PN532_I2C_ADDRESS<<1, buff, n+2, HAL_MAX_DELAY);
 
+	HAL_I2C_Master_Receive(hi2cLib, PN532_I2C_ADDRESS<<1, buff, n+2, HAL_MAX_DELAY);
 }
 /*!
     @brief  Writes a command to the PN532, automatically inserting the
@@ -886,7 +876,7 @@ void readdata(uint8_t buff[], uint8_t n)
 */
 void writecommand(uint8_t* cmd, uint8_t cmdlen)
 {
-		uint8_t checksum;
+	uint8_t checksum;
 	uint8_t temp=0;
 	cmdlen++;
 	HAL_Delay(2) ;    // or whatever the delay is for waking up the board
@@ -907,7 +897,7 @@ void writecommand(uint8_t* cmd, uint8_t cmdlen)
 
 	checksum += PN532_HOSTTOPN532;
 	uint8_t i=0;
-	for (i=0; i<cmdlen-1; i++) 
+	for (i=0; i<cmdlen-1; i++)
 	{
 		writeBuffer[temp]=cmd[i];
 		temp++;
@@ -925,8 +915,7 @@ void writecommand(uint8_t* cmd, uint8_t cmdlen)
 uint8_t isready()
 {
 	// I2C check if status is ready by IRQ line being pulled low.
-	//uint8_t x = digitalRead(_irq);
-	uint8_t x = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13)
+	uint8_t x = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13); //TODO
 	return x == 0;
 }
 /*!
@@ -937,15 +926,18 @@ uint8_t isready()
 uint8_t waitready(uint16_t timeout)
 {
 	  uint16_t timer = 0;
-	  while(!isready()) {
-	    if (timeout != 0) {
-	      timer += 10;
-	      if (timer > timeout) {
 
+	  while(!isready())
+	  {
+	    if (timeout != 0)
+	    {
+	      timer += 5;
+	      if (timer > timeout)
+	      {
 	        return 0;
 	      }
 	    }
-	    HAL_Delay(10);
+	    HAL_Delay(5);
 	  }
 	  return 1;
 }
@@ -955,8 +947,12 @@ uint8_t waitready(uint16_t timeout)
 uint8_t readack()
 {
 
-	uint8_t pn532ack[] = {0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00};
-	uint8_t ackbuff[6];
+	uint8_t pn532ack[] = {0x01, 0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00};
+	uint8_t ackbuff[7];
 	readdata(ackbuff, 6);
-	return (0 == strncmp((char *)ackbuff, (char *)pn532ack, 6));
+	return (0 == strncmp((char *)ackbuff, (char *)pn532ack, 7));
 }
+void setUART_PN532(UART_HandleTypeDef *huart)
+{
+	huartP=huart;
+	}
