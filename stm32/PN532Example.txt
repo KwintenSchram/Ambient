@@ -1,0 +1,27 @@
+  setI2CInterface_PN532(&hi2c1);
+  setUART_PN532(&huart2);
+  uint32_t versiondata = getFirmwareVersion();
+  if (! versiondata)
+  {
+	  HAL_UART_Transmit(&huart2, (uint8_t*)"fail", strlen("fail"), HAL_MAX_DELAY);
+    while (1); // halt
+  }
+	  HAL_UART_Transmit(&huart2, (uint8_t*)"Success", strlen("Success"), HAL_MAX_DELAY);
+	  SAMConfig();
+	  uint8_t success;
+  uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };	// Buffer to store the returned UID
+  uint8_t uidLength;				// Length of the UID (4 or 7 bytes depending on ISO14443A card type)
+  while (1)
+  {
+  HAL_UART_Transmit(&huart2, (uint8_t*)"Looking...", strlen("Looking..."), HAL_MAX_DELAY);
+
+   success = readPassiveTargetID(PN532_MIFARE_ISO14443A, &uid[0], &uidLength,1000);
+   if (success)
+   {
+     char str[80];
+            sprintf(str, "ID: %X,%X,%X,%X,%X,%X,%X ", uid[0],uid[1],uid[2],uid[3],uid[4],uid[5],uid[6]);
+
+     HAL_UART_Transmit(&huart2, (uint8_t*)"Found card", strlen("Found card"), HAL_MAX_DELAY);
+     HAL_UART_Transmit(&huart2, (uint8_t*)str, strlen(str), HAL_MAX_DELAY);
+     HAL_Delay(1000);
+   }
