@@ -61,7 +61,7 @@
 #define PN532_SPI_DATAREAD                  (0x03)
 #define PN532_SPI_READY                     (0x01)
 */
-#define PN532_I2C_ADDRESS                   (0x48 >> 1)
+#define PN532_I2C_ADDRESS                   (0x48>>1)
 #define PN532_I2C_READBIT                   (0x01)
 #define PN532_I2C_BUSY                      (0x00)
 #define PN532_I2C_READY                     (0x01)
@@ -129,11 +129,13 @@
 */
 
 I2C_HandleTypeDef *hi2cLib;
+UART_HandleTypeDef *huartP;
 //uint8_t pn532ack[] = {0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00};
 //uint8_t pn532response_firmwarevers[] = {0x00, 0xFF, 0x06, 0xFA, 0xD5, 0x03};
 
 uint8_t pn532_packetbuffer[PN532_PACKBUFFSIZ];
 void setI2CInterface_PN532(I2C_HandleTypeDef *hi2c);
+void setUART_PN532(UART_HandleTypeDef *huart);
 uint8_t WRITE_REGISTER_PN532(uint8_t pData[],uint8_t length);
 uint8_t READ_REGISTER_PN532(uint8_t buf[],uint8_t reg,uint8_t length);
 
@@ -178,7 +180,7 @@ uint8_t SAMConfig();
   uint8_t _uidLen;       // uid len
   uint8_t _key[6];       // Mifare Classic key
   uint8_t _inListedTag;  // Tg number of inlisted tag.
-  uint8_t writeBuffer[1];
+  uint8_t writeBuffer[PN532_PACKBUFFSIZ];
   //uint8_t    _usingSPI;     // True if using SPI, false if using I2C.
   //uint8_t    _hardwareSPI;  // True is using hardware SPI, false if using software SPI.
 
