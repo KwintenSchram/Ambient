@@ -32,6 +32,7 @@ double getTemp() {
 
 int main() {
 	bcm2835_init();
+	bcm2835_i2c_setClockDivider(25000); //10kHz 
 	configure_CCS811(1);
 //	MPL3115A2_Init_Alt();
 //	MPL3115A2_Init_Bar();
