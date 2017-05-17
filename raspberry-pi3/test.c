@@ -4,6 +4,7 @@
 #include "mpl3115a2.h"
 #include "CCS811.h"
 #include <bcm2835.h>
+#define PIN RPI_GPIO_P1_15
 
 double getAlt() {
 	int v = MPL3115A2_Read_Alt();
@@ -34,13 +35,15 @@ int main() {
 	bcm2835_init();
 	bcm2835_i2c_setClockDivider(25000); //10kHz 
 	configure_CCS811(1);
+	enableInterrupts_CCS811();
+	bcm2835_gpio_fsel(PIN, BCM2835_GPIO_FSEL_INPT);
 //	MPL3115A2_Init_Alt();
 //	MPL3115A2_Init_Bar();
 //	MPL3115A2_Active();
 	sleep(1);
 	for (;;)
 	{
-		if(dataAvailable_CCS811()==1)
+		if(bcm2835_gpio_lev(PIN)==0)
 		{
 			uint32_t data;
 			uint16_t CO21;
