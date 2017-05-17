@@ -21,8 +21,8 @@ void READ_REGISTER_CCS811(char buf[],char reg,uint8_t length)
 {
 	char regaddr = reg;
 	bcm2835_i2c_setSlaveAddress(CCS811_ADDR);
-	bcm2835_i2c_write(&regaddr, length);
-	bcm2835_i2c_read(buf, length);
+	bcm2835_i2c_write(&regaddr, length);	//First write to indicate the register address
+	bcm2835_i2c_read(buf, length);		//Then read data at address
 	return;
 }
 
