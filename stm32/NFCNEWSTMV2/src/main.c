@@ -46,7 +46,7 @@ UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 
 #define STARTUPNFC                      1000
-#define STARTUPDASH7                    1500
+#define STARTUPDASH7                    1400
 #define SENDTIMEDASH7					100
 #define LOOKFORCARDTIME					5000
 //SMALL SIZE PACKAGE
@@ -109,17 +109,15 @@ int main(void)
 	/* Initialize all configured peripherals */
 	MX_GPIO_Init();
 	MX_I2C1_Init();
-	MX_USART1_UART_Init();
-	MX_USART2_UART_Init();
+	//MX_USART1_UART_Init();
+	//MX_USART2_UART_Init();
 
 	/* USER CODE BEGIN 2 */
 	setI2CInterface_PN532(&hi2c1);
 	uint8_t success;
-	//uint8_t uid[] ={ 0, 0, 0, 0, 0, 0, 0 };	// Buffer to store the returned UID
-	//uint8_t det[] ={ 42, 42 };
 	uint8_t uidLength;
 	HAL_Delay(1000);
-	HAL_GPIO_WritePin(GPIOA, VNFC_Pin, GPIO_PIN_SET);
+	//HAL_GPIO_WritePin(GPIOA, VNFC_Pin, GPIO_PIN_SET);
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
@@ -131,6 +129,7 @@ int main(void)
 		{
 			if (flags & 0b00000001 == 1)
 			{
+				//toggleBlue(20);
 				HAL_GPIO_WritePin(GPIOA, VNFC_Pin, GPIO_PIN_SET);
 				HAL_Delay(STARTUPNFC); // startup time
 				uint32_t versiondata = getFirmwareVersion();
@@ -144,7 +143,6 @@ int main(void)
 				}
 
 				SAMConfig();
-				toggleBlue(20);
 				uint8_t uid[] ={ 0, 0, 0, 0, 0, 0, 0 };
 				success = readPassiveTargetID(PN532_MIFARE_ISO14443A, &uid[0], &uidLength, LOOKFORCARDTIME);
 				sendDetection(success,NELEMS(uid), uid);
@@ -155,7 +153,6 @@ int main(void)
 		/* USER CODE BEGIN 3 */
 	}
 	/* USER CODE END 3 */
-
 }
 
 /** System Clock Configuration
@@ -330,25 +327,18 @@ void SleepMode(void)
 	HAL_Delay(10);
 	//GPIO_InitTypeDef GPIO_InitStruct;
 	// MX_GPIO_Deinit();
-	HAL_UART_DeInit(&huart2);
-	HAL_UART_DeInit(&huart1);
 	//HAL_I2C_MspDeInit(&hi2c1);
 	HAL_SuspendTick();
 	__HAL_RCC_PWR_CLK_ENABLE();
-	HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
-	//HAL_PWR_EnterSLEEPMode(PWR_LOWPOWERREGULATOR_ON, PWR_SLEEPENTRY_WFI);
+	//HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
+	HAL_PWR_EnterSLEEPMode(PWR_LOWPOWERREGULATOR_ON, PWR_SLEEPENTRY_WFI);
 	HAL_ResumeTick();
-	// MX_USART1_UART_Init();
-	MX_USART2_UART_Init();
+	// MX_USART1_UART_Init();*
+	//MX_USART2_UART_Init();
 	// MX_I2C1_Init();
 	// MX_GPIO_Init();
-	HAL_Delay(10);
-	__HAL_GPIO_EXTI_CLEAR_IT(11);
-	HAL_Delay(10);
 	HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
-	HAL_Delay(10);
 	__HAL_GPIO_EXTI_CLEAR_IT(11);
-	HAL_Delay(10);
 }
 void StopMode(void)
 {
@@ -438,21 +428,18 @@ void D7SendMessage(uint8_t data[], int length)
 void sendDetection(uint8_t success,uint8_t size, uint8_t uid[])
 {
 	HAL_GPIO_WritePin(GPIOA, VNFC_Pin, GPIO_PIN_RESET);
-
+/*
 	if (success)
-	{
 		toggleGreen(10);
-	}
 	else
-	{
 		toggleRed(10);
-	}
+	*/
 	HAL_GPIO_WritePin(GPIOA, RSTNFC_RBNO_Pin, GPIO_PIN_SET);
-	HAL_Delay(10);
 	MX_USART1_UART_Init();
 	HAL_Delay(STARTUPDASH7);
 	D7SendMessage(uid, size);
 	HAL_Delay(SENDTIMEDASH7);
+	HAL_UART_DeInit(&huart1);
 	HAL_GPIO_WritePin(GPIOA, RSTNFC_RBNO_Pin, GPIO_PIN_RESET);
 }
 void toggleRed(uint8_t time)
