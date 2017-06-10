@@ -45,10 +45,11 @@ I2C_HandleTypeDef hi2c1;
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 
-#define STARTUPNFC                      1000
+#define STARTUPNFC                      20
 #define STARTUPDASH7                    1400
 #define SENDTIMEDASH7					100
 #define LOOKFORCARDTIME					5000
+#define MAXTRIES						10
 //SMALL SIZE PACKAGE
 #define DASH7_ARRAYLENGTH                       4
 #define DASH7_DATALENGTH                        DASH7_ARRAYLENGTH * 2
@@ -63,6 +64,9 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 volatile char flags = 0b00000001;
+uint8_t success;
+uint8_t uidLength;
+uint8_t failCounter=0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -109,37 +113,41 @@ int main(void)
 	/* Initialize all configured peripherals */
 	MX_GPIO_Init();
 	MX_I2C1_Init();
-	//MX_USART1_UART_Init();
-	//MX_USART2_UART_Init();
 
 	/* USER CODE BEGIN 2 */
 	setI2CInterface_PN532(&hi2c1);
-	uint8_t success;
-	uint8_t uidLength;
-	HAL_Delay(1000);
-	//HAL_GPIO_WritePin(GPIOA, VNFC_Pin, GPIO_PIN_SET);
+
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1)
 	{
-		toggleWhite(100);
+		toggleWhite(250);
 		while (1)
 		{
-			if (flags & 0b00000001 == 1)
+			if ((flags & 0b00000001) == 1)
 			{
 				//toggleBlue(20);
 				HAL_GPIO_WritePin(GPIOA, VNFC_Pin, GPIO_PIN_SET);
-				HAL_Delay(STARTUPNFC); // startup time
-				uint32_t versiondata = getFirmwareVersion();
-				if (!versiondata)
+				HAL_Delay(STARTUPNFC);
+				while(!getFirmwareVersion())
 				{
-					while (1) // halt
+					if(failCounter>=MAXTRIES)
 					{
-						toggleRed(50);
-						HAL_Delay(1000);
+						HAL_GPIO_WritePin(GPIOA, VNFC_Pin, GPIO_PIN_RESET);
+						while(1)
+						{
+							toggleRed(50);
+							HAL_Delay(2000);
+						}
 					}
+					failCounter++;
+					HAL_GPIO_WritePin(GPIOA, VNFC_Pin, GPIO_PIN_RESET);
+					toggleRed(10);
+					HAL_Delay(200);
+					HAL_GPIO_WritePin(GPIOA, VNFC_Pin, GPIO_PIN_SET);
+					HAL_Delay(STARTUPNFC*10);
 				}
 
 				SAMConfig();
@@ -288,7 +296,7 @@ static void MX_GPIO_Init(void)
 	/*Configure GPIO pin : Button_Pin */
 	GPIO_InitStruct.Pin = Button_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
 	HAL_GPIO_Init(Button_GPIO_Port, &GPIO_InitStruct);
 
 	/*Configure GPIO pins : LEDG_Pin LEDR_Pin LEDB_Pin RSTNFC_RBNO_Pin
@@ -324,14 +332,21 @@ static void MX_GPIO_Init(void)
 void SleepMode(void)
 {
 	HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
-	HAL_Delay(10);
+	//HAL_Delay(10);
 	//GPIO_InitTypeDef GPIO_InitStruct;
 	// MX_GPIO_Deinit();
 	//HAL_I2C_MspDeInit(&hi2c1);
 	HAL_SuspendTick();
 	__HAL_RCC_PWR_CLK_ENABLE();
-	//HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
-	HAL_PWR_EnterSLEEPMode(PWR_LOWPOWERREGULATOR_ON, PWR_SLEEPENTRY_WFI);
+	//HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI); //sleep
+	//HAL_PWR_EnterSLEEPMode(PWR_LOWPOWERREGULATOR_ON, PWR_SLEEPENTRY_WFI); //lowPowerSleep
+	 //HAL_PWR_EnterSTOPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI); //stopMode
+	 HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_SLEEPENTRY_WFI); //LOWpowerstopMode
+	HAL_PWR_EnableWakeUpPin(PWR_WAKEUP_PIN1);
+
+	  /* Enter STANDBY mode */
+	  //HAL_PWR_EnterSTANDBYMode();
+
 	HAL_ResumeTick();
 	// MX_USART1_UART_Init();*
 	//MX_USART2_UART_Init();
@@ -463,12 +478,12 @@ void toggleBlue(uint8_t time)
 void toggleWhite(uint8_t time)
 {
 	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5); //RED LED
-			HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_6); //GREEN LED
-			HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_7); //BlUE LED
-			HAL_Delay(time);
-			HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5); //RED LED
-			HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_6); //GREEN LED
-			HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_7); //BlUE LED
+	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_6); //GREEN LED
+	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_7); //BlUE LED
+	HAL_Delay(time);
+	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5); //RED LED
+	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_6); //GREEN LED
+	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_7); //BlUE LED
 }
 /* USER CODE END 4 */
 
